@@ -1,47 +1,32 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
-using Harmony;
-using UnityEngine;
-
-namespace Geeper
+﻿namespace Geeper
 {
+    using SMLHelper.V2.Utility;
+    using QModManager.API.ModLoading;
+    using System.IO;
+    using System.Reflection;
+    using HarmonyLib;
+    using UnityEngine;
+
+    [QModCore]
     public class Main
     {
+        private static  Texture2D geeperTexture;
+
+        private static Texture2D GeeperTexture => geeperTexture??= ImageUtils.LoadTextureFromFile(
+            Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "Geeper.png"));
+
+        [QModPatch]
         public static void Patch()
         {
-            var harmony = HarmonyInstance.Create("com.ahk1221.geeper");
-            harmony.PatchAll(Assembly.GetExecutingAssembly());
+            Harmony.CreateAndPatchAll(typeof(Main), "com.ahk1221.geeper");
         }
 
-        // Ripped from: https://github.com/RandyKnapp/SubnauticaModSystem/blob/master/SubnauticaModSystem/Common/Utility/ImageUtils.cs
-        public static Texture2D LoadTexture(string path, TextureFormat format = TextureFormat.BC7, int width = 2, int height = 2)
-        {
-            if (File.Exists(path))
-            {
-                byte[] data = File.ReadAllBytes(path);
-                Texture2D texture2D = new Texture2D(width, height, format, false);
-                if (texture2D.LoadImage(data))
-                {
-                    return texture2D;
-                }
-            }
-            else
-            {
-                Console.WriteLine("[Geeper] ERROR: File not found " + path);
-            }
-            return null;
-        }
-    }
-
-    [HarmonyPatch(typeof(Peeper))]
-    [HarmonyPatch("Start")]
-    internal class Peeper_Start_Patch
-    {
-        static void Postfix(Peeper __instance)
+        [HarmonyPatch(typeof(Peeper), nameof(Peeper.Start))]
+        [HarmonyPostfix]
+        private static void Postfix(Peeper __instance)
         {
             var gameObject = __instance.gameObject;
-            var texture = Main.LoadTexture(@"./QMods/Geeper/Geeper.png");
+            var texture = GeeperTexture;
             var model = gameObject.FindChild("model").FindChild("peeper").FindChild("aqua_bird").FindChild("peeper");
             var skinnedRenderer = model.GetComponent<SkinnedMeshRenderer>();
             skinnedRenderer.sharedMaterial.mainTexture = texture;
