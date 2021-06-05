@@ -1,0 +1,9 @@
+{
+  "Id": "Geeper",
+  "DisplayName": "Geeper",
+  "Author": "AHK1221",
+  "Version": "1.0.1",
+  "Enable": true,
+  "Game": "Subnautica",
+  "AssemblyName": "Geeper.dll"
+}
